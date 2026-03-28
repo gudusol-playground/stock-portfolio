@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RefreshButton } from "./components/refresh-button";
+import { RebalancingDialog } from "./components/rebalancing-dialog";
 
 async function getUsdKrw(): Promise<{ rate: number; date: string }> {
   try {
@@ -81,7 +82,10 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">종목별 현황</CardTitle>
-            <RefreshButton />
+            <div className="flex gap-2">
+              <RebalancingDialog holdings={aggregated} usdKrw={USD_KRW} />
+              <RefreshButton />
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
