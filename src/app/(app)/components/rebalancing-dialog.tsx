@@ -68,14 +68,14 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
         추가매수 시뮬레이션
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-5xl">
+        <DialogContent className="max-w-[80vw] w-full max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>추가매수 시뮬레이션</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground -mt-2">
             추가매수 수량과 가격을 입력하면 새 평단가와 비중을 실시간으로 확인할 수 있어요.
           </p>
-          <div className="overflow-x-auto">
+          <div className="overflow-auto flex-1 min-h-0">
             <Table>
               <TableHeader>
                 <TableRow>

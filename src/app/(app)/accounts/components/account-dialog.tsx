@@ -36,7 +36,7 @@ export function AccountDialog({ account, trigger }: AccountDialogProps) {
     <>
       {cloneElement(trigger, { onClick: () => setOpen(true) })}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{account ? "계좌 수정" : "계좌 추가"}</DialogTitle>
         </DialogHeader>

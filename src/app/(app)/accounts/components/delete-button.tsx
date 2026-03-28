@@ -40,7 +40,7 @@ export function DeleteButton({ onDelete, description, variant = "icon" }: Delete
         </Button>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>정말 삭제하시겠어요?</DialogTitle>
         </DialogHeader>
