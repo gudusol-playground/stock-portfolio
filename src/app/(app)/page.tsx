@@ -1,11 +1,10 @@
 import { getAccounts, getHoldings } from "@/lib/supabase/queries";
 import { aggregateHoldings, formatKRW, formatNumber } from "@/lib/portfolio";
+import { getStockPrices } from "@/lib/kis-api/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-// 한투 API 연동 전까지 현재가 = 평균단가 (수익률 0%)
-const PRICES: Record<string, number> = {};
+import { RefreshButton } from "./components/refresh-button";
 
 async function getUsdKrw(): Promise<{ rate: number; date: string }> {
   try {
@@ -24,7 +23,13 @@ export default async function DashboardPage() {
     Promise.all([getAccounts(), getHoldings()]),
     getUsdKrw(),
   ]);
-  const aggregated = aggregateHoldings(holdings, accounts, PRICES, USD_KRW);
+
+  const uniqueTickers = Array.from(
+    new Map(holdings.map((h) => [h.ticker, { ticker: h.ticker, market: h.market }])).values()
+  );
+  const prices = holdings.length > 0 ? await getStockPrices(uniqueTickers) : {};
+
+  const aggregated = aggregateHoldings(holdings, accounts, prices, USD_KRW);
   const totalValueKRW = aggregated.reduce((s, h) => s + h.totalValueKRW, 0);
   const totalCostKRW = aggregated.reduce((s, h) => s + h.totalCostKRW, 0);
   const totalReturnRate = totalCostKRW > 0 ? ((totalValueKRW - totalCostKRW) / totalCostKRW) * 100 : 0;
@@ -33,11 +38,14 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">전체 포트폴리오</h1>
-        <div className="text-right">
-          <p className="text-sm font-medium">USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원</p>
-          {rateDate && (
-            <p className="text-xs text-muted-foreground">{rateDate} 기준 (ECB)</p>
-          )}
+        <div className="flex items-end gap-4">
+          <RefreshButton />
+          <div className="text-right">
+            <p className="text-sm font-medium">USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원</p>
+            {rateDate && (
+              <p className="text-xs text-muted-foreground">{rateDate} 기준 (ECB)</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -109,7 +117,7 @@ export default async function DashboardPage() {
                     <TableCell className="text-right">
                       {h.currency === "USD" ? `$${formatNumber(h.avgPrice, 2)}` : formatKRW(h.avgPrice)}
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
+                    <TableCell className="text-right">
                       {h.currency === "USD" ? `$${formatNumber(h.currentPrice, 2)}` : formatKRW(h.currentPrice)}
                     </TableCell>
                     <TableCell className="text-right">{formatKRW(h.totalValueKRW)}</TableCell>

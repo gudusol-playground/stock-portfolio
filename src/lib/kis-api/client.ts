@@ -3,7 +3,9 @@
  * 문서: https://apiportal.koreainvestment.com
  */
 
-const KIS_BASE_URL = process.env.KIS_IS_REAL === "true"
+const IS_REAL = process.env.KIS_IS_REAL === "true";
+
+const KIS_BASE_URL = IS_REAL
   ? "https://openapi.koreainvestment.com:9443"
   : "https://openapivts.koreainvestment.com:29443"; // 모의투자
 
@@ -67,4 +69,67 @@ export async function kisRequest<T>(
   }
 
   return res.json() as Promise<T>;
+}
+
+/** 국내 주식 현재가 조회 */
+async function getKrStockPrice(ticker: string): Promise<number> {
+  const data = await kisRequest<{ output: { stck_prpr: string } }>(
+    "/uapi/domestic-stock/v1/quotations/inquire-price",
+    "FHKST01010100",
+    { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: ticker }
+  );
+  const price = Number(data.output?.stck_prpr);
+  if (!price) throw new Error(`KR price not found for ${ticker}`);
+  return price;
+}
+
+// 거래소 코드 추론 (NAS 시도 후 NYS 폴백)
+const EXCHANGE_CACHE: Record<string, string> = {};
+
+async function getUsStockPrice(ticker: string): Promise<number> {
+  if (!IS_REAL) {
+    throw new Error("해외주식 현재가 조회는 실전투자 계정에서만 지원됩니다");
+  }
+
+  const exchanges = EXCHANGE_CACHE[ticker]
+    ? [EXCHANGE_CACHE[ticker]]
+    : ["NAS", "NYS", "AMS"];
+
+  for (const excd of exchanges) {
+    try {
+      const data = await kisRequest<{ output: { last: string } }>(
+        "/uapi/overseas-price/v1/quotations/price",
+        "HHDFS76200200",
+        { AUTH: "", EXCD: excd, SYMB: ticker }
+      );
+      const price = Number(data.output?.last);
+      if (price) {
+        EXCHANGE_CACHE[ticker] = excd;
+        return price;
+      }
+    } catch {
+      // 다음 거래소 시도
+    }
+  }
+  throw new Error(`US price not found for ${ticker}`);
+}
+
+/** 보유 종목 현재가 일괄 조회. 실패한 종목은 결과에서 제외됨 */
+export async function getStockPrices(
+  tickers: { ticker: string; market: "KR" | "US" }[]
+): Promise<Record<string, number>> {
+  const results = await Promise.allSettled(
+    tickers.map(async ({ ticker, market }) => {
+      const price = market === "KR"
+        ? await getKrStockPrice(ticker)
+        : await getUsStockPrice(ticker);
+      return { ticker, price };
+    })
+  );
+
+  return Object.fromEntries(
+    results
+      .filter((r): r is PromiseFulfilledResult<{ ticker: string; price: number }> => r.status === "fulfilled")
+      .map((r) => [r.value.ticker, r.value.price])
+  );
 }
