@@ -38,14 +38,11 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">전체 포트폴리오</h1>
-        <div className="flex items-end gap-4">
-          <RefreshButton />
-          <div className="text-right">
-            <p className="text-sm font-medium">USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원</p>
-            {rateDate && (
-              <p className="text-xs text-muted-foreground">{rateDate} 기준 (ECB)</p>
-            )}
-          </div>
+        <div className="text-right">
+          <p className="text-sm font-medium">USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원</p>
+          {rateDate && (
+            <p className="text-xs text-muted-foreground">{rateDate} 기준 (ECB)</p>
+          )}
         </div>
       </div>
 
@@ -82,8 +79,9 @@ export default async function DashboardPage() {
         <p className="text-sm text-muted-foreground">계좌 관리에서 보유 종목을 추가해주세요.</p>
       ) : (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">종목별 현황</CardTitle>
+            <RefreshButton />
           </CardHeader>
           <CardContent className="p-0">
             <Table>
