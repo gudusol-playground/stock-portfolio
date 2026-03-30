@@ -26,6 +26,15 @@ CREATE TABLE holdings (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ============================================================
+-- kis_token: 한국투자증권 API 액세스 토큰 캐시 (전역 1행)
+-- ============================================================
+CREATE TABLE kis_token (
+  id         INT PRIMARY KEY DEFAULT 1,  -- 항상 1행만 유지
+  token      TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL
+);
+
 -- updated_at 자동 갱신 트리거
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$

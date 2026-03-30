@@ -3,6 +3,8 @@
  * 문서: https://apiportal.koreainvestment.com
  */
 
+import { createClient } from "@supabase/supabase-js";
+
 const IS_REAL = process.env.KIS_IS_REAL === "true";
 
 const KIS_BASE_URL = IS_REAL
@@ -12,14 +14,13 @@ const KIS_BASE_URL = IS_REAL
 const APP_KEY = process.env.KIS_APP_KEY!;
 const APP_SECRET = process.env.KIS_APP_SECRET!;
 
-let cachedToken: { token: string; expiresAt: number } | null = null;
+// kis_token 테이블은 RLS 없이 서비스 롤로 접근
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-/** OAuth 토큰 발급 (캐싱 포함) */
-export async function getAccessToken(): Promise<string> {
-  if (cachedToken && Date.now() < cachedToken.expiresAt) {
-    return cachedToken.token;
-  }
-
+async function issueNewToken(): Promise<{ token: string; expiresAt: Date }> {
   const res = await fetch(`${KIS_BASE_URL}/oauth2/tokenP`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -35,13 +36,27 @@ export async function getAccessToken(): Promise<string> {
   }
 
   const data = await res.json();
+  const expiresAt = new Date(Date.now() + (data.expires_in - 60) * 1000); // 만료 1분 전 갱신
 
-  cachedToken = {
-    token: data.access_token,
-    expiresAt: Date.now() + (data.expires_in - 60) * 1000, // 만료 1분 전 갱신
-  };
+  await supabaseAdmin.from("kis_token").upsert({ id: 1, token: data.access_token, expires_at: expiresAt.toISOString() });
 
-  return cachedToken.token;
+  return { token: data.access_token, expiresAt };
+}
+
+/** OAuth 토큰 조회 — Supabase 캐시 우선, 만료 시 재발급 */
+export async function getAccessToken(): Promise<string> {
+  const { data } = await supabaseAdmin
+    .from("kis_token")
+    .select("token, expires_at")
+    .eq("id", 1)
+    .single();
+
+  if (data && new Date(data.expires_at) > new Date()) {
+    return data.token;
+  }
+
+  const { token } = await issueNewToken();
+  return token;
 }
 
 /** KIS API 공통 요청 함수 */
