@@ -129,22 +129,23 @@ async function getUsStockPrice(ticker: string): Promise<number> {
   throw new Error(`US price not found for ${ticker}`);
 }
 
-/** 보유 종목 현재가 일괄 조회. 실패한 종목은 결과에서 제외됨 */
+/** 보유 종목 현재가 일괄 조회 — 순차 처리로 API 요청 제한 방지 */
 export async function getStockPrices(
   tickers: { ticker: string; market: "KR" | "US" }[]
 ): Promise<Record<string, number>> {
-  const results = await Promise.allSettled(
-    tickers.map(async ({ ticker, market }) => {
-      const price = market === "KR"
+  const prices: Record<string, number> = {};
+
+  for (const { ticker, market } of tickers) {
+    try {
+      prices[ticker] = market === "KR"
         ? await getKrStockPrice(ticker)
         : await getUsStockPrice(ticker);
-      return { ticker, price };
-    })
-  );
+      // KIS API 초당 요청 제한 대응 (20 req/s)
+      await new Promise((r) => setTimeout(r, 60));
+    } catch {
+      // 실패한 종목은 결과에서 제외 → 평단가로 폴백
+    }
+  }
 
-  return Object.fromEntries(
-    results
-      .filter((r): r is PromiseFulfilledResult<{ ticker: string; price: number }> => r.status === "fulfilled")
-      .map((r) => [r.value.ticker, r.value.price])
-  );
+  return prices;
 }
