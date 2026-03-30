@@ -33,4 +33,4 @@ Before writing any code, if the request contains ambiguous, underspecified, or p
 ## Git Workflow
 
 - **After completing work**: `git commit` only — do NOT push automatically.
-- **Push only when**: the user explicitly says to deploy, push, or ship (e.g. "배포해줘", "push해줘", "올려줘").
+- **Push only when**: the user explicitly says to push or deploy (e.g. "push해줘", "올려줘", "배포해줘").
