@@ -1,19 +1,18 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, cloneElement } from "react";
-import type { ReactElement } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addHolding, updateHolding } from "../actions";
-import type { Holding } from "@/types";
 import { useStockSearch } from "@/hooks/use-stock-search";
 
 interface HoldingDialogProps {
   accountId: string;
-  holding?: Holding;
-  trigger: ReactElement<{ onClick?: () => void }>;
+  holding?: any;
+  trigger: any;
 }
 
 export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProps) {
@@ -69,9 +68,13 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
     setShowDropdown(false);
   }
 
+  const handleTriggerClick = () => {
+    setOpen(true);
+  };
+
   return (
     <>
-      {cloneElement(trigger, { onClick: () => setOpen(true) })}
+      {React.isValidElement(trigger) ? React.cloneElement(trigger as any, { onClick: handleTriggerClick }) : trigger}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
         <DialogHeader>

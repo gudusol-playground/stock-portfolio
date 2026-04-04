@@ -27,9 +27,7 @@ export default async function AccountsPage() {
         />
       </div>
 
-      {accounts.length === 0 && (
-        <p className="text-sm text-muted-foreground">계좌를 추가해주세요.</p>
-      )}
+      {accounts.length === 0 && <p className="text-sm text-muted-foreground">계좌를 추가해주세요.</p>}
 
       <div className="space-y-6">
         {accounts.map((account) => {
@@ -115,6 +113,7 @@ export default async function AccountsPage() {
                           <TableCell>
                             <div className="flex items-center justify-end gap-1">
                               <HoldingDialog
+                                key={`edit-${h.id}`}
                                 accountId={account.id}
                                 holding={h}
                                 trigger={
@@ -124,6 +123,7 @@ export default async function AccountsPage() {
                                 }
                               />
                               <DeleteButton
+                                description={`"${h.name}" 종목이 삭제됩니다.`}
                                 onDelete={async () => {
                                   "use server";
                                   return deleteHolding(h.id);
