@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { AggregatedHolding } from "@/types";
 
@@ -58,9 +65,7 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
 
   const newTotalKRW = rows.reduce((s, r) => s + r.newValueKRW, 0);
 
-  const hasInput = Object.values(inputs).some(
-    (v) => parseNum(v.qty) > 0
-  );
+  const hasInput = Object.values(inputs).some((v) => parseNum(v.qty) > 0);
 
   return (
     <>
@@ -101,7 +106,10 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                     <TableRow key={h.ticker} className={changed ? "bg-muted/40" : ""}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Badge variant={h.market === "KR" ? "default" : "secondary"} className="text-xs">
+                          <Badge
+                            variant={h.market === "KR" ? "default" : "secondary"}
+                            className="text-xs"
+                          >
                             {h.market}
                           </Badge>
                           <div>
@@ -114,11 +122,14 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                         {h.totalQuantity.toLocaleString("ko-KR")}
                         {changed && (
                           <span className="text-xs text-blue-500 ml-1">
-                            +{parseNum(input.qty).toLocaleString("ko-KR")} → {h.newQty.toLocaleString("ko-KR")}
+                            +{parseNum(input.qty).toLocaleString("ko-KR")} →{" "}
+                            {h.newQty.toLocaleString("ko-KR")}
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">{formatPrice(h.avgPrice, h.currency)}</TableCell>
+                      <TableCell className="text-right">
+                        {formatPrice(h.avgPrice, h.currency)}
+                      </TableCell>
                       <TableCell className="text-right">{h.weight.toFixed(1)}%</TableCell>
                       <TableCell className="text-right">
                         <Input
@@ -139,7 +150,9 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                       <TableCell className="text-right">
                         <span>{formatPrice(h.newAvgPrice, h.currency)}</span>
                         {changed && avgDiff !== 0 && (
-                          <p className={`text-xs ${avgDiff > 0 ? "text-red-500" : "text-blue-500"}`}>
+                          <p
+                            className={`text-xs ${avgDiff > 0 ? "text-red-500" : "text-blue-500"}`}
+                          >
                             {avgDiff > 0 ? "▲" : "▼"} {formatPrice(Math.abs(avgDiff), h.currency)}
                           </p>
                         )}
@@ -147,7 +160,9 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                       <TableCell className="text-right">
                         <span>{newWeight.toFixed(1)}%</span>
                         {hasInput && weightDiff !== 0 && (
-                          <p className={`text-xs ${weightDiff > 0 ? "text-red-500" : "text-blue-500"}`}>
+                          <p
+                            className={`text-xs ${weightDiff > 0 ? "text-red-500" : "text-blue-500"}`}
+                          >
                             {weightDiff > 0 ? "▲" : "▼"} {Math.abs(weightDiff).toFixed(1)}%p
                           </p>
                         )}
@@ -159,7 +174,15 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
             </Table>
           </div>
           <div className="flex justify-end">
-            <Button variant="outline" onClick={() => { setInputs({}); setOpen(false); }}>닫기</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setInputs({});
+                setOpen(false);
+              }}
+            >
+              닫기
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

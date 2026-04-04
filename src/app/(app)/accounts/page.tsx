@@ -3,7 +3,14 @@ import { formatKRW, formatNumber } from "@/lib/portfolio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Pencil, Plus } from "lucide-react";
 import { AccountDialog } from "./components/account-dialog";
 import { HoldingDialog } from "./components/holding-dialog";
@@ -27,7 +34,9 @@ export default async function AccountsPage() {
         />
       </div>
 
-      {accounts.length === 0 && <p className="text-sm text-muted-foreground">계좌를 추가해주세요.</p>}
+      {accounts.length === 0 && (
+        <p className="text-sm text-muted-foreground">계좌를 추가해주세요.</p>
+      )}
 
       <div className="space-y-6">
         {accounts.map((account) => {
@@ -71,9 +80,7 @@ export default async function AccountsPage() {
               </CardHeader>
               <CardContent className="p-0">
                 {accountHoldings.length === 0 ? (
-                  <p className="px-6 py-4 text-sm text-muted-foreground">
-                    보유 종목이 없습니다.
-                  </p>
+                  <p className="px-6 py-4 text-sm text-muted-foreground">보유 종목이 없습니다.</p>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -90,7 +97,10 @@ export default async function AccountsPage() {
                         <TableRow key={h.id}>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <Badge variant={h.market === "KR" ? "default" : "secondary"} className="text-xs">
+                              <Badge
+                                variant={h.market === "KR" ? "default" : "secondary"}
+                                className="text-xs"
+                              >
                                 {h.market}
                               </Badge>
                               <div>
@@ -117,7 +127,11 @@ export default async function AccountsPage() {
                                 accountId={account.id}
                                 holding={h}
                                 trigger={
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground"
+                                  >
                                     <Pencil className="h-4 w-4" />
                                   </Button>
                                 }

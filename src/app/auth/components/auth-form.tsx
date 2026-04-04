@@ -9,13 +9,10 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ action, submitLabel }: AuthFormProps) {
-  const [state, formAction, isPending] = useActionState(
-    async (_: unknown, formData: FormData) => {
-      const result = await action(formData);
-      return result ?? null;
-    },
-    null
-  );
+  const [state, formAction, isPending] = useActionState(async (_: unknown, formData: FormData) => {
+    const result = await action(formData);
+    return result ?? null;
+  }, null);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -47,9 +44,7 @@ export function AuthForm({ action, submitLabel }: AuthFormProps) {
           placeholder="••••••••"
         />
       </div>
-      {state?.error && (
-        <p className="text-sm text-destructive">{state.error}</p>
-      )}
+      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "처리 중..." : submitLabel}
       </Button>

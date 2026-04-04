@@ -22,7 +22,7 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
   const [name, setName] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [avgPriceDisplay, setAvgPriceDisplay] = useState(
-    holding?.avg_price != null ? Number(holding.avg_price).toLocaleString() : "",
+    holding?.avg_price != null ? Number(holding.avg_price).toLocaleString() : ""
   );
   const action = holding ? updateHolding : addHolding;
   const formRef = useRef<HTMLFormElement>(null);
@@ -44,7 +44,9 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
       setName("");
       setQuery("");
       setShowDropdown(false);
-      setAvgPriceDisplay(holding?.avg_price != null ? Number(holding.avg_price).toLocaleString() : "");
+      setAvgPriceDisplay(
+        holding?.avg_price != null ? Number(holding.avg_price).toLocaleString() : ""
+      );
     }
   }, [open, holding?.market, holding?.avg_price, setQuery]);
 
@@ -71,7 +73,9 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
 
   return (
     <>
-      {React.isValidElement(trigger) ? React.cloneElement(trigger as any, { onClick: handleTriggerClick }) : trigger}
+      {React.isValidElement(trigger)
+        ? React.cloneElement(trigger as any, { onClick: handleTriggerClick })
+        : trigger}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -165,7 +169,15 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
               </div>
               <div className="space-y-2">
                 <Label htmlFor="avg_price">
-                  평균단가 ({isEdit ? (holding?.currency === "USD" ? "USD" : "KRW") : market === "US" ? "USD" : "KRW"})
+                  평균단가 (
+                  {isEdit
+                    ? holding?.currency === "USD"
+                      ? "USD"
+                      : "KRW"
+                    : market === "US"
+                      ? "USD"
+                      : "KRW"}
+                  )
                 </Label>
                 <Input
                   id="avg_price"
@@ -190,7 +202,8 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
             {/* 선택된 종목 미리보기 */}
             {!isEdit && ticker && (
               <p className="text-xs text-muted-foreground">
-                선택: <span className="font-medium text-foreground">{name || ticker}</span> ({ticker})
+                선택: <span className="font-medium text-foreground">{name || ticker}</span> (
+                {ticker})
               </p>
             )}
 

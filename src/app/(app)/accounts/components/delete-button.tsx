@@ -31,29 +31,41 @@ export function DeleteButton({ onDelete, description, variant = "icon" }: Delete
   return (
     <>
       {variant === "icon" ? (
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setOpen(true)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+          onClick={() => setOpen(true)}
+        >
           <Trash2 className="h-4 w-4" />
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" onClick={() => setOpen(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-destructive"
+          onClick={() => setOpen(true)}
+        >
           삭제
         </Button>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>정말 삭제하시겠어요?</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">
-          {description ?? "이 작업은 되돌릴 수 없습니다."}
-        </p>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>취소</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-            {isPending ? "삭제 중..." : "삭제"}
-          </Button>
-        </div>
+          <DialogHeader>
+            <DialogTitle>정말 삭제하시겠어요?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {description ?? "이 작업은 되돌릴 수 없습니다."}
+          </p>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              취소
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
+              {isPending ? "삭제 중..." : "삭제"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

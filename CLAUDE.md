@@ -9,24 +9,29 @@ Before writing any code, if the request contains ambiguous, underspecified, or p
 3. **Keep it focused** — Ask only about the parts that genuinely affect implementation decisions. Do not ask about things that have an obvious default.
 
 ### When to ask:
+
 - The UI behavior or user flow is not clearly defined
 - There are multiple reasonable implementation approaches with different tradeoffs
 - A data model decision would be hard to change later
 - The scope of the task is unclear (e.g., "update the portfolio page" — which part?)
 
 ### When NOT to ask:
+
 - The request is straightforward and unambiguous
 - The missing detail has a clear, conventional default (e.g., loading states, error handling patterns)
 - It's a minor style or naming decision that can easily be changed
 
 ### Example format when asking:
+
 > Before I proceed, I want to confirm a few things:
 >
 > **1. [Ambiguous point]**
+>
 > - Option A: [description + brief example]
 > - Option B: [description + brief example]
 >
 > **2. [Another point]**
+>
 > - Option A: ...
 > - Option B: ...
 

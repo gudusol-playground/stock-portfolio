@@ -38,7 +38,9 @@ async function issueNewToken(): Promise<{ token: string; expiresAt: Date }> {
   const data = await res.json();
   const expiresAt = new Date(Date.now() + (data.expires_in - 60) * 1000); // 만료 1분 전 갱신
 
-  await supabaseAdmin.from("kis_token").upsert({ id: 1, token: data.access_token, expires_at: expiresAt.toISOString() });
+  await supabaseAdmin
+    .from("kis_token")
+    .upsert({ id: 1, token: data.access_token, expires_at: expiresAt.toISOString() });
 
   return { token: data.access_token, expiresAt };
 }
@@ -74,7 +76,7 @@ export async function kisRequest<T>(
       Authorization: `Bearer ${token}`,
       appkey: APP_KEY,
       appsecret: APP_SECRET,
-      "tr_id": trId,
+      tr_id: trId,
       "Content-Type": "application/json",
     },
   });
@@ -106,9 +108,7 @@ async function getUsStockPrice(ticker: string): Promise<number> {
     throw new Error("해외주식 현재가 조회는 실전투자 계정에서만 지원됩니다");
   }
 
-  const exchanges = EXCHANGE_CACHE[ticker]
-    ? [EXCHANGE_CACHE[ticker]]
-    : ["NAS", "NYS", "AMS"];
+  const exchanges = EXCHANGE_CACHE[ticker] ? [EXCHANGE_CACHE[ticker]] : ["NAS", "NYS", "AMS"];
 
   for (const excd of exchanges) {
     try {
@@ -137,9 +137,8 @@ export async function getStockPrices(
 
   for (const { ticker, market } of tickers) {
     try {
-      prices[ticker] = market === "KR"
-        ? await getKrStockPrice(ticker)
-        : await getUsStockPrice(ticker);
+      prices[ticker] =
+        market === "KR" ? await getKrStockPrice(ticker) : await getUsStockPrice(ticker);
       // KIS API 초당 요청 제한 대응 (20 req/s)
       await new Promise((r) => setTimeout(r, 60));
     } catch {

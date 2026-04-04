@@ -7,7 +7,9 @@ import { revalidatePath } from "next/cache";
 
 export async function addAccount(formData: FormData) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "로그인이 필요합니다." };
 
   const { error } = await supabase.from("accounts").insert({
@@ -51,7 +53,9 @@ export async function deleteAccount(id: string) {
 
 export async function addHolding(formData: FormData) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "로그인이 필요합니다." };
 
   const market = formData.get("market") as string;

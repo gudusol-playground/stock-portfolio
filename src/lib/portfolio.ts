@@ -54,7 +54,11 @@ export function aggregateHoldings(
 }
 
 export function formatKRW(value: number) {
-  return new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 export function formatNumber(value: number, digits = 0) {

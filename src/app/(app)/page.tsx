@@ -3,7 +3,14 @@ import { aggregateHoldings, formatKRW, formatNumber } from "@/lib/portfolio";
 import { getStockPrices } from "@/lib/kis-api/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { RefreshButton } from "./components/refresh-button";
 import { RebalancingDialog } from "./components/rebalancing-dialog";
 
@@ -33,17 +40,18 @@ export default async function DashboardPage() {
   const aggregated = aggregateHoldings(holdings, accounts, prices, USD_KRW);
   const totalValueKRW = aggregated.reduce((s, h) => s + h.totalValueKRW, 0);
   const totalCostKRW = aggregated.reduce((s, h) => s + h.totalCostKRW, 0);
-  const totalReturnRate = totalCostKRW > 0 ? ((totalValueKRW - totalCostKRW) / totalCostKRW) * 100 : 0;
+  const totalReturnRate =
+    totalCostKRW > 0 ? ((totalValueKRW - totalCostKRW) / totalCostKRW) * 100 : 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">전체 포트폴리오</h1>
         <div className="text-right">
-          <p className="text-sm font-medium">USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원</p>
-          {rateDate && (
-            <p className="text-xs text-muted-foreground">{rateDate} 기준 (ECB)</p>
-          )}
+          <p className="text-sm font-medium">
+            USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원
+          </p>
+          {rateDate && <p className="text-xs text-muted-foreground">{rateDate} 기준 (ECB)</p>}
         </div>
       </div>
 
@@ -69,8 +77,11 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">총 수익률</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${totalReturnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
-              {totalReturnRate >= 0 ? "+" : ""}{totalReturnRate.toFixed(2)}%
+            <p
+              className={`text-2xl font-bold ${totalReturnRate >= 0 ? "text-red-500" : "text-blue-500"}`}
+            >
+              {totalReturnRate >= 0 ? "+" : ""}
+              {totalReturnRate.toFixed(2)}%
             </p>
           </CardContent>
         </Card>
@@ -106,7 +117,10 @@ export default async function DashboardPage() {
                   <TableRow key={h.ticker}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant={h.market === "KR" ? "default" : "secondary"} className="text-xs">
+                        <Badge
+                          variant={h.market === "KR" ? "default" : "secondary"}
+                          className="text-xs"
+                        >
                           {h.market}
                         </Badge>
                         <div>
@@ -117,14 +131,21 @@ export default async function DashboardPage() {
                     </TableCell>
                     <TableCell className="text-right">{formatNumber(h.totalQuantity)}</TableCell>
                     <TableCell className="text-right">
-                      {h.currency === "USD" ? `$${formatNumber(h.avgPrice, 2)}` : formatKRW(h.avgPrice)}
+                      {h.currency === "USD"
+                        ? `$${formatNumber(h.avgPrice, 2)}`
+                        : formatKRW(h.avgPrice)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {h.currency === "USD" ? `$${formatNumber(h.currentPrice, 2)}` : formatKRW(h.currentPrice)}
+                      {h.currency === "USD"
+                        ? `$${formatNumber(h.currentPrice, 2)}`
+                        : formatKRW(h.currentPrice)}
                     </TableCell>
                     <TableCell className="text-right">{formatKRW(h.totalValueKRW)}</TableCell>
-                    <TableCell className={`text-right font-medium ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
-                      {h.returnRate >= 0 ? "+" : ""}{h.returnRate.toFixed(2)}%
+                    <TableCell
+                      className={`text-right font-medium ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}
+                    >
+                      {h.returnRate >= 0 ? "+" : ""}
+                      {h.returnRate.toFixed(2)}%
                     </TableCell>
                     <TableCell className="text-right font-medium">{h.weight.toFixed(1)}%</TableCell>
                     <TableCell>
