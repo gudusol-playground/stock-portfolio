@@ -64,7 +64,7 @@ export default async function AccountsPage() {
                           <HoldingDialog
                             accountId={account.id}
                             trigger={
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="종목 추가">
                                 <Plus className="h-4 w-4" />
                               </Button>
                             }
@@ -72,7 +72,7 @@ export default async function AccountsPage() {
                           <AccountDialog
                             account={account}
                             trigger={
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="계좌 수정">
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             }
@@ -144,6 +144,7 @@ export default async function AccountsPage() {
                                           variant="ghost"
                                           size="icon"
                                           className="h-8 w-8 text-muted-foreground"
+                                          aria-label="종목 수정"
                                         >
                                           <Pencil className="h-4 w-4" />
                                         </Button>
