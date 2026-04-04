@@ -16,7 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <nav className="flex items-center gap-6">
             {links.map(({ href, label }) => {
