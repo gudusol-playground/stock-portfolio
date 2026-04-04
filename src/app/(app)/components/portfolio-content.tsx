@@ -1,18 +1,8 @@
 import { getAccounts, getHoldings } from "@/lib/supabase/queries";
-import { aggregateHoldings, formatKRW, formatNumber } from "@/lib/portfolio";
+import { aggregateHoldings, formatKRW } from "@/lib/portfolio";
 import { getStockPrices } from "@/lib/kis-api/client";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { RefreshButton } from "./refresh-button";
-import { RebalancingDialog } from "./rebalancing-dialog";
+import { PortfolioTable } from "./portfolio-table";
 
 interface Props {
   usdKrw: number;
@@ -69,79 +59,13 @@ export async function PortfolioContent({ usdKrw }: Props) {
       {aggregated.length === 0 ? (
         <p className="text-sm text-muted-foreground">계좌 관리에서 보유 종목을 추가해주세요.</p>
       ) : (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">종목별 현황</CardTitle>
-            <div className="flex gap-2">
-              <RebalancingDialog holdings={aggregated} usdKrw={usdKrw} />
-              <RefreshButton />
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>종목</TableHead>
-                  <TableHead className="text-right">수량</TableHead>
-                  <TableHead className="text-right">평균단가</TableHead>
-                  <TableHead className="text-right">현재가</TableHead>
-                  <TableHead className="text-right">평가금액</TableHead>
-                  <TableHead className="text-right">수익률</TableHead>
-                  <TableHead className="text-right">비중</TableHead>
-                  <TableHead>보유 계좌</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {aggregated.map((h) => (
-                  <TableRow key={h.ticker}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${h.market === "KR" ? "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300" : "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"}`}
-                        >
-                          {h.market}
-                        </Badge>
-                        <div>
-                          <p className="font-medium">{h.name}</p>
-                          <p className="text-xs text-muted-foreground">{h.ticker}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">{formatNumber(h.totalQuantity)}</TableCell>
-                    <TableCell className="text-right">
-                      {h.currency === "USD"
-                        ? `$${formatNumber(h.avgPrice, 2)}`
-                        : formatKRW(h.avgPrice)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {h.currency === "USD"
-                        ? `$${formatNumber(h.currentPrice, 2)}`
-                        : formatKRW(h.currentPrice)}
-                    </TableCell>
-                    <TableCell className="text-right">{formatKRW(h.totalValueKRW)}</TableCell>
-                    <TableCell
-                      className={`text-right font-medium ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}
-                    >
-                      {h.returnRate >= 0 ? "+" : ""}
-                      {h.returnRate.toFixed(2)}%
-                    </TableCell>
-                    <TableCell className="text-right font-medium">{h.weight.toFixed(1)}%</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-                        {h.accounts.map((a) => (
-                          <span key={a.accountName} className="text-xs text-muted-foreground">
-                            {a.accountName} ({formatNumber(a.quantity)})
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <PortfolioTable
+          aggregated={aggregated}
+          accounts={accounts}
+          holdings={holdings}
+          prices={prices}
+          usdKrw={usdKrw}
+        />
       )}
     </>
   );
