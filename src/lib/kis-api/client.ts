@@ -65,15 +65,16 @@ export async function getAccessToken(): Promise<string> {
 export async function kisRequest<T>(
   path: string,
   trId: string,
-  params: Record<string, string>
+  params: Record<string, string>,
+  token?: string
 ): Promise<T> {
-  const token = await getAccessToken();
+  const resolvedToken = token ?? await getAccessToken();
   const url = new URL(`${KIS_BASE_URL}${path}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
 
   const res = await fetch(url.toString(), {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${resolvedToken}`,
       appkey: APP_KEY,
       appsecret: APP_SECRET,
       tr_id: trId,
@@ -89,11 +90,12 @@ export async function kisRequest<T>(
 }
 
 /** 국내 주식 현재가 조회 */
-async function getKrStockPrice(ticker: string): Promise<number> {
+async function getKrStockPrice(ticker: string, token: string): Promise<number> {
   const data = await kisRequest<{ output: { stck_prpr: string } }>(
     "/uapi/domestic-stock/v1/quotations/inquire-price",
     "FHKST01010100",
-    { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: ticker }
+    { FID_COND_MRKT_DIV_CODE: "J", FID_INPUT_ISCD: ticker },
+    token
   );
   const price = Number(data.output?.stck_prpr);
   if (!price) throw new Error(`KR price not found for ${ticker}`);
@@ -103,7 +105,7 @@ async function getKrStockPrice(ticker: string): Promise<number> {
 // 거래소 코드 추론 (NAS 시도 후 NYS 폴백)
 const EXCHANGE_CACHE: Record<string, string> = {};
 
-async function getUsStockPrice(ticker: string): Promise<number> {
+async function getUsStockPrice(ticker: string, token: string): Promise<number> {
   if (!IS_REAL) {
     throw new Error("해외주식 현재가 조회는 실전투자 계정에서만 지원됩니다");
   }
@@ -115,7 +117,8 @@ async function getUsStockPrice(ticker: string): Promise<number> {
       const data = await kisRequest<{ output: { last: string } }>(
         "/uapi/overseas-price/v1/quotations/price",
         "HHDFS76200200",
-        { AUTH: "", EXCD: excd, SYMB: ticker }
+        { AUTH: "", EXCD: excd, SYMB: ticker },
+        token
       );
       const price = Number(data.output?.last);
       if (price) {
@@ -134,11 +137,12 @@ export async function getStockPrices(
   tickers: { ticker: string; market: "KR" | "US" }[]
 ): Promise<Record<string, number>> {
   const prices: Record<string, number> = {};
+  const token = await getAccessToken(); // 토큰 1회 조회 후 재사용
 
   for (const { ticker, market } of tickers) {
     try {
       prices[ticker] =
-        market === "KR" ? await getKrStockPrice(ticker) : await getUsStockPrice(ticker);
+        market === "KR" ? await getKrStockPrice(ticker, token) : await getUsStockPrice(ticker, token);
       // KIS API 초당 요청 제한 대응 (20 req/s)
       await new Promise((r) => setTimeout(r, 60));
     } catch {
