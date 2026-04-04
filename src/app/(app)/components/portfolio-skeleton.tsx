@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 function SkeletonBlock({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-muted ${className}`} />;
@@ -21,8 +22,12 @@ export function PortfolioSkeleton() {
       </div>
 
       <Card>
-        <CardHeader>
-          <SkeletonBlock className="h-5 w-24" />
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">종목별 현황</CardTitle>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            현재가 조회 중
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {[0, 1, 2, 3, 4].map((i) => (
