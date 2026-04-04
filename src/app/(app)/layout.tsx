@@ -4,6 +4,7 @@ import { logout } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./components/theme-toggle";
 
 const links = [
   { href: "/", label: "포트폴리오" },
@@ -31,11 +32,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          <form action={logout}>
-            <Button variant="ghost" size="sm" type="submit">
-              로그아웃
-            </Button>
-          </form>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <form action={logout}>
+              <Button variant="ghost" size="sm" type="submit">
+                로그아웃
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
