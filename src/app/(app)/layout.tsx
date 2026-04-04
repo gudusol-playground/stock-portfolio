@@ -24,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={href}
                   href={href}
-                  className={`text-sm ${isActive ? "font-bold" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`text-sm transition-colors ${isActive ? "font-semibold text-foreground underline underline-offset-4 decoration-2 decoration-primary" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   {label}
                 </Link>

@@ -49,7 +49,7 @@ export default async function AccountsPage() {
       <div className="space-y-8">
         {brokerGroups.map(([broker, brokerAccounts]) => (
           <div key={broker} className="space-y-3">
-            <h2 className="text-sm font-semibold text-muted-foreground">{broker}</h2>
+            <h2 className="border-l-2 border-primary pl-3 text-sm font-semibold">{broker}</h2>
             <div className="space-y-4">
               {brokerAccounts.map((account) => {
                 const accountHoldings = holdings.filter((h) => h.account_id === account.id);
@@ -109,8 +109,8 @@ export default async function AccountsPage() {
                                 <TableCell>
                                   <div className="flex items-center gap-2">
                                     <Badge
-                                      variant={h.market === "KR" ? "default" : "secondary"}
-                                      className="text-xs"
+                                      variant="outline"
+                                      className={`text-xs ${h.market === "KR" ? "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300" : "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"}`}
                                     >
                                       {h.market}
                                     </Badge>
