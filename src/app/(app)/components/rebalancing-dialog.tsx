@@ -73,7 +73,7 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
         추가매수 시뮬레이션
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[80vw] w-full max-h-[85vh] flex flex-col">
+        <DialogContent className="flex w-full max-w-[95vw] flex-col max-h-[90vh] md:max-w-[80vw] md:max-h-[85vh]">
           <DialogHeader>
             <DialogTitle>추가매수 시뮬레이션</DialogTitle>
           </DialogHeader>
@@ -81,15 +81,104 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
             추가매수 수량과 가격을 입력하면 새 평단가와 비중을 실시간으로 확인할 수 있어요.
           </p>
           <div className="overflow-auto flex-1 min-h-0">
-            <Table>
+            {/* 모바일: 카드형 레이아웃 */}
+            <div className="space-y-3 md:hidden">
+              {rows.map((h) => {
+                const newWeight = newTotalKRW > 0 ? (h.newValueKRW / newTotalKRW) * 100 : 0;
+                const weightDiff = newWeight - h.weight;
+                const avgDiff = h.newAvgPrice - h.avgPrice;
+                const input = inputs[h.ticker] ?? { qty: "", price: "" };
+                const changed = parseNum(input.qty) > 0;
+
+                return (
+                  <div
+                    key={h.ticker}
+                    className={`rounded-lg border p-3 ${changed ? "border-primary/30 bg-muted/40" : ""}`}
+                  >
+                    {/* 종목 헤더 */}
+                    <div className="mb-2 flex items-center gap-2">
+                      <Badge variant={h.market === "KR" ? "default" : "secondary"} className="text-xs">
+                        {h.market}
+                      </Badge>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{h.name}</p>
+                        <p className="text-xs text-muted-foreground">{h.ticker}</p>
+                      </div>
+                    </div>
+                    {/* 현재 정보 */}
+                    <div className="mb-3 flex gap-3 text-xs text-muted-foreground">
+                      <span>
+                        {h.totalQuantity.toLocaleString("ko-KR")}주
+                        {changed && (
+                          <span className="ml-1 text-blue-500">
+                            → {h.newQty.toLocaleString("ko-KR")}주
+                          </span>
+                        )}
+                      </span>
+                      <span>·</span>
+                      <span>{formatPrice(h.avgPrice, h.currency)}</span>
+                      <span>·</span>
+                      <span>{h.weight.toFixed(1)}%</span>
+                    </div>
+                    {/* 입력 필드 */}
+                    <div className="mb-3 grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">추가수량</p>
+                        <Input
+                          className="h-8 text-right md:text-sm"
+                          inputMode="decimal"
+                          placeholder="0"
+                          value={input.qty}
+                          onChange={(e) => setInput(h.ticker, "qty", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">매수가격</p>
+                        <Input
+                          className="h-8 text-right md:text-sm"
+                          inputMode="decimal"
+                          placeholder={formatPrice(h.currentPrice, h.currency).replace(/[₩$]/g, "")}
+                          value={input.price}
+                          onChange={(e) => setInput(h.ticker, "price", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    {/* 결과 */}
+                    <div className="flex gap-4 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">새 평단가</p>
+                        <p className="font-medium">{formatPrice(h.newAvgPrice, h.currency)}</p>
+                        {changed && avgDiff !== 0 && (
+                          <p className={`text-xs ${avgDiff > 0 ? "text-red-500" : "text-blue-500"}`}>
+                            {avgDiff > 0 ? "▲" : "▼"} {formatPrice(Math.abs(avgDiff), h.currency)}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">새 비중</p>
+                        <p className="font-medium">{newWeight.toFixed(1)}%</p>
+                        {hasInput && weightDiff !== 0 && (
+                          <p className={`text-xs ${weightDiff > 0 ? "text-red-500" : "text-blue-500"}`}>
+                            {weightDiff > 0 ? "▲" : "▼"} {Math.abs(weightDiff).toFixed(1)}%p
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 데스크탑: 기존 테이블 */}
+            <Table className="hidden md:table">
               <TableHeader>
                 <TableRow>
                   <TableHead>종목</TableHead>
                   <TableHead className="text-right">현재 수량</TableHead>
                   <TableHead className="text-right">현재 평단가</TableHead>
                   <TableHead className="text-right">현재 비중</TableHead>
-                  <TableHead className="text-right w-28">추가수량</TableHead>
-                  <TableHead className="text-right w-32">매수가격</TableHead>
+                  <TableHead className="w-28 text-right">추가수량</TableHead>
+                  <TableHead className="w-32 text-right">매수가격</TableHead>
                   <TableHead className="text-right">새 평단가</TableHead>
                   <TableHead className="text-right">새 비중</TableHead>
                 </TableRow>
@@ -106,10 +195,7 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                     <TableRow key={h.ticker} className={changed ? "bg-muted/40" : ""}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Badge
-                            variant={h.market === "KR" ? "default" : "secondary"}
-                            className="text-xs"
-                          >
+                          <Badge variant={h.market === "KR" ? "default" : "secondary"} className="text-xs">
                             {h.market}
                           </Badge>
                           <div>
@@ -121,19 +207,17 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                       <TableCell className="text-right">
                         {h.totalQuantity.toLocaleString("ko-KR")}
                         {changed && (
-                          <span className="text-xs text-blue-500 ml-1">
+                          <span className="ml-1 text-xs text-blue-500">
                             +{parseNum(input.qty).toLocaleString("ko-KR")} →{" "}
                             {h.newQty.toLocaleString("ko-KR")}
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {formatPrice(h.avgPrice, h.currency)}
-                      </TableCell>
+                      <TableCell className="text-right">{formatPrice(h.avgPrice, h.currency)}</TableCell>
                       <TableCell className="text-right">{h.weight.toFixed(1)}%</TableCell>
                       <TableCell className="text-right">
                         <Input
-                          className="h-8 text-right text-sm"
+                          className="h-8 text-right md:text-sm"
                           placeholder="0"
                           value={input.qty}
                           onChange={(e) => setInput(h.ticker, "qty", e.target.value)}
@@ -141,7 +225,7 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                       </TableCell>
                       <TableCell className="text-right">
                         <Input
-                          className="h-8 text-right text-sm"
+                          className="h-8 text-right md:text-sm"
                           placeholder={formatPrice(h.currentPrice, h.currency).replace(/[₩$]/g, "")}
                           value={input.price}
                           onChange={(e) => setInput(h.ticker, "price", e.target.value)}
@@ -150,9 +234,7 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                       <TableCell className="text-right">
                         <span>{formatPrice(h.newAvgPrice, h.currency)}</span>
                         {changed && avgDiff !== 0 && (
-                          <p
-                            className={`text-xs ${avgDiff > 0 ? "text-red-500" : "text-blue-500"}`}
-                          >
+                          <p className={`text-xs ${avgDiff > 0 ? "text-red-500" : "text-blue-500"}`}>
                             {avgDiff > 0 ? "▲" : "▼"} {formatPrice(Math.abs(avgDiff), h.currency)}
                           </p>
                         )}
@@ -160,9 +242,7 @@ export function RebalancingDialog({ holdings, usdKrw }: Props) {
                       <TableCell className="text-right">
                         <span>{newWeight.toFixed(1)}%</span>
                         {hasInput && weightDiff !== 0 && (
-                          <p
-                            className={`text-xs ${weightDiff > 0 ? "text-red-500" : "text-blue-500"}`}
-                          >
+                          <p className={`text-xs ${weightDiff > 0 ? "text-red-500" : "text-blue-500"}`}>
                             {weightDiff > 0 ? "▲" : "▼"} {Math.abs(weightDiff).toFixed(1)}%p
                           </p>
                         )}
