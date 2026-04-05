@@ -161,6 +161,7 @@ export function HoldingDialog({ accountId, holding, trigger }: HoldingDialogProp
                   id="quantity"
                   name="quantity"
                   type="number"
+                  inputMode="decimal"
                   min="0.0001"
                   step="any"
                   defaultValue={holding?.quantity}
