@@ -97,8 +97,8 @@ export default async function AccountsPage() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>종목</TableHead>
-                              <TableHead className="text-right">수량</TableHead>
-                              <TableHead className="text-right">평균단가</TableHead>
+                              <TableHead className="hidden text-right md:table-cell">수량</TableHead>
+                              <TableHead className="hidden text-right md:table-cell">평균단가</TableHead>
                               <TableHead className="text-right">매입금액</TableHead>
                               <TableHead className="w-20" />
                             </TableRow>
@@ -120,10 +120,10 @@ export default async function AccountsPage() {
                                     </div>
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="hidden text-right md:table-cell">
                                   {formatNumber(h.quantity)}
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="hidden text-right md:table-cell">
                                   {h.currency === "USD"
                                     ? `$${formatNumber(h.avg_price, 2)}`
                                     : formatKRW(h.avg_price)}

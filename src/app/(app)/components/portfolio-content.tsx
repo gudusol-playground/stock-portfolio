@@ -24,31 +24,23 @@ export async function PortfolioContent({ usdKrw }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">총 평가금액</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatKRW(totalValueKRW)}</p>
+      <div className="grid grid-cols-1 gap-1.5 md:grid-cols-3 md:gap-4">
+        <Card className="py-2 md:py-4">
+          <CardContent className="flex items-center justify-between px-4 md:block">
+            <p className="text-xs font-medium text-muted-foreground md:mb-1 md:text-sm">총 평가금액</p>
+            <p className="text-sm font-bold md:text-2xl">{formatKRW(totalValueKRW)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">총 매입금액</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatKRW(totalCostKRW)}</p>
+        <Card className="py-2 md:py-4">
+          <CardContent className="flex items-center justify-between px-4 md:block">
+            <p className="text-xs font-medium text-muted-foreground md:mb-1 md:text-sm">총 매입금액</p>
+            <p className="text-sm font-bold md:text-2xl">{formatKRW(totalCostKRW)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">총 수익률</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p
-              className={`text-2xl font-bold ${totalReturnRate >= 0 ? "text-red-500" : "text-blue-500"}`}
-            >
+        <Card className="py-2 md:py-4">
+          <CardContent className="flex items-center justify-between px-4 md:block">
+            <p className="text-xs font-medium text-muted-foreground md:mb-1 md:text-sm">총 수익률</p>
+            <p className={`text-sm font-bold md:text-2xl ${totalReturnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
               {totalReturnRate >= 0 ? "+" : ""}
               {totalReturnRate.toFixed(2)}%
             </p>

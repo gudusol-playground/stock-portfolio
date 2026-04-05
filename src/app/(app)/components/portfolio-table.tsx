@@ -103,11 +103,11 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
 
   const sortedAggregated = sortedRows(aggregated, getAggValue);
 
-  function SortableHead({ label, sortK }: { label: string; sortK: SortKey }) {
+  function SortableHead({ label, sortK, className }: { label: string; sortK: SortKey; className?: string }) {
     const isActive = sortKey === sortK;
     return (
       <TableHead
-        className="cursor-pointer select-none text-right"
+        className={`cursor-pointer select-none text-right${className ? ` ${className}` : ""}`}
         onClick={() => handleSort(sortK)}
       >
         <div className="flex items-center justify-end gap-1">
@@ -126,16 +126,33 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
     );
   }
 
-  function StockCell({ h }: { h: { market: "KR" | "US"; name: string; ticker: string } }) {
+  function StockCell({
+    h,
+    mobileStats,
+  }: {
+    h: { market: "KR" | "US"; name: string; ticker: string };
+    mobileStats?: { value: string; returnRate: number; weight: number };
+  }) {
     return (
       <TableCell>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className={`text-xs ${MARKET_BADGE(h.market)}`}>
+        <div className="flex items-start gap-2">
+          <Badge variant="outline" className={`mt-0.5 shrink-0 text-xs ${MARKET_BADGE(h.market)}`}>
             {h.market}
           </Badge>
-          <div>
-            <p className="font-medium">{h.name}</p>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">{h.name}</p>
             <p className="text-xs text-muted-foreground">{h.ticker}</p>
+            {mobileStats && (
+              <div className="mt-0.5 flex items-center gap-1 text-xs md:hidden">
+                <span className="font-medium">{mobileStats.value}</span>
+                <span className="text-muted-foreground">·</span>
+                <span className={mobileStats.returnRate >= 0 ? "text-red-500" : "text-blue-500"}>
+                  {mobileStats.returnRate >= 0 ? "+" : ""}{mobileStats.returnRate.toFixed(2)}%
+                </span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-muted-foreground">{mobileStats.weight.toFixed(1)}%</span>
+              </div>
+            )}
           </div>
         </div>
       </TableCell>
@@ -144,18 +161,20 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">
-          {groupByAccount ? "계좌별 현황" : "종목별 현황"}
-        </CardTitle>
-        <div className="flex gap-2">
+      <CardHeader className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-base">
+            {groupByAccount ? "계좌별 현황" : "종목별 현황"}
+          </CardTitle>
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={() => setGroupByAccount((v) => !v)}
           >
             {groupByAccount ? "종목별 보기" : "계좌별 보기"}
           </Button>
+        </div>
+        <div className="flex gap-2">
           {!groupByAccount && <RebalancingDialog holdings={aggregated} usdKrw={usdKrw} />}
           <RefreshButton />
         </div>
@@ -167,13 +186,13 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
             <TableHeader>
               <TableRow>
                 <TableHead>종목</TableHead>
-                <TableHead className="text-right">수량</TableHead>
-                <TableHead className="text-right">평균단가</TableHead>
-                <TableHead className="text-right">현재가</TableHead>
-                <SortableHead label="투자금액" sortK="cost" />
-                <SortableHead label="평가금액" sortK="value" />
-                <SortableHead label="수익률" sortK="returnRate" />
-                <SortableHead label="비중" sortK="weight" />
+                <TableHead className="hidden text-right md:table-cell">수량</TableHead>
+                <TableHead className="hidden text-right md:table-cell">평균단가</TableHead>
+                <TableHead className="hidden text-right md:table-cell">현재가</TableHead>
+                <SortableHead label="투자금액" sortK="cost" className="hidden md:table-cell" />
+                <SortableHead label="평가금액" sortK="value" className="hidden md:table-cell" />
+                <SortableHead label="수익률" sortK="returnRate" className="hidden md:table-cell" />
+                <SortableHead label="비중" sortK="weight" className="hidden md:table-cell" />
               </TableRow>
             </TableHeader>
             {accountGroups.map(({ account, rows }) => (
@@ -188,27 +207,28 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
                 </TableRow>
                 {rows.map((h) => (
                       <TableRow key={h.id}>
-                        <StockCell h={h} />
-                        <TableCell className="text-right">{formatNumber(h.quantity)}</TableCell>
-                        <TableCell className="text-right">
+                        <StockCell
+                          h={h}
+                          mobileStats={{ value: formatKRW(h.valueKRW), returnRate: h.returnRate, weight: h.weight }}
+                        />
+                        <TableCell className="hidden text-right md:table-cell">{formatNumber(h.quantity)}</TableCell>
+                        <TableCell className="hidden text-right md:table-cell">
                           {h.currency === "USD"
                             ? `$${formatNumber(h.avg_price, 2)}`
                             : formatKRW(h.avg_price)}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="hidden text-right md:table-cell">
                           {h.currency === "USD"
                             ? `$${formatNumber(h.currentPrice, 2)}`
                             : formatKRW(h.currentPrice)}
                         </TableCell>
-                        <TableCell className="text-right">{formatKRW(h.costKRW)}</TableCell>
-                        <TableCell className="text-right">{formatKRW(h.valueKRW)}</TableCell>
-                        <TableCell
-                          className={`text-right font-medium ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}
-                        >
+                        <TableCell className="hidden text-right md:table-cell">{formatKRW(h.costKRW)}</TableCell>
+                        <TableCell className="hidden text-right md:table-cell">{formatKRW(h.valueKRW)}</TableCell>
+                        <TableCell className={`hidden text-right font-medium md:table-cell ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
                           {h.returnRate >= 0 ? "+" : ""}
                           {h.returnRate.toFixed(2)}%
                         </TableCell>
-                        <TableCell className="text-right font-medium">
+                        <TableCell className="hidden text-right font-medium md:table-cell">
                           {h.weight.toFixed(1)}%
                         </TableCell>
                       </TableRow>
@@ -222,41 +242,42 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
             <TableHeader>
               <TableRow>
                 <TableHead>종목</TableHead>
-                <TableHead className="text-right">수량</TableHead>
-                <TableHead className="text-right">평균단가</TableHead>
-                <TableHead className="text-right">현재가</TableHead>
-                <SortableHead label="투자금액" sortK="cost" />
-                <SortableHead label="평가금액" sortK="value" />
-                <SortableHead label="수익률" sortK="returnRate" />
-                <SortableHead label="비중" sortK="weight" />
-                <TableHead>보유 계좌</TableHead>
+                <TableHead className="hidden text-right md:table-cell">수량</TableHead>
+                <TableHead className="hidden text-right md:table-cell">평균단가</TableHead>
+                <TableHead className="hidden text-right md:table-cell">현재가</TableHead>
+                <SortableHead label="투자금액" sortK="cost" className="hidden md:table-cell" />
+                <SortableHead label="평가금액" sortK="value" className="hidden md:table-cell" />
+                <SortableHead label="수익률" sortK="returnRate" className="hidden md:table-cell" />
+                <SortableHead label="비중" sortK="weight" className="hidden md:table-cell" />
+                <TableHead className="hidden md:table-cell">보유 계좌</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedAggregated.map((h) => (
                 <TableRow key={h.ticker}>
-                  <StockCell h={h} />
-                  <TableCell className="text-right">{formatNumber(h.totalQuantity)}</TableCell>
-                  <TableCell className="text-right">
+                  <StockCell
+                    h={h}
+                    mobileStats={{ value: formatKRW(h.totalValueKRW), returnRate: h.returnRate, weight: h.weight }}
+                  />
+                  <TableCell className="hidden text-right md:table-cell">{formatNumber(h.totalQuantity)}</TableCell>
+                  <TableCell className="hidden text-right md:table-cell">
                     {h.currency === "USD"
                       ? `$${formatNumber(h.avgPrice, 2)}`
                       : formatKRW(h.avgPrice)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="hidden text-right md:table-cell">
                     {h.currency === "USD"
                       ? `$${formatNumber(h.currentPrice, 2)}`
                       : formatKRW(h.currentPrice)}
                   </TableCell>
-                  <TableCell className="text-right">{formatKRW(h.totalCostKRW)}</TableCell>
-                  <TableCell className="text-right">{formatKRW(h.totalValueKRW)}</TableCell>
-                  <TableCell
-                    className={`text-right font-medium ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}
-                  >
+                  <TableCell className="hidden text-right md:table-cell">{formatKRW(h.totalCostKRW)}</TableCell>
+                  <TableCell className="hidden text-right md:table-cell">{formatKRW(h.totalValueKRW)}</TableCell>
+                  <TableCell className={`hidden text-right font-medium md:table-cell ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
                     {h.returnRate >= 0 ? "+" : ""}
                     {h.returnRate.toFixed(2)}%
                   </TableCell>
-                  <TableCell className="text-right font-medium">{h.weight.toFixed(1)}%</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden text-right font-medium md:table-cell">{h.weight.toFixed(1)}%</TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="flex flex-wrap gap-x-2 gap-y-0.5">
                       {h.accounts.map((a) => (
                         <span key={a.accountName} className="text-xs text-muted-foreground">

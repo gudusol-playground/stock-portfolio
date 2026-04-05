@@ -19,9 +19,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">전체 포트폴리오</h1>
-        <div className="text-right">
+        <div className="text-left md:text-right">
           <p className="text-sm font-medium">
             USD/KRW {USD_KRW.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원
           </p>
