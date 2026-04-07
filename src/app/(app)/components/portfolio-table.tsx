@@ -161,7 +161,7 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
 
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-2">
+      <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CardTitle className="text-base">
             {groupByAccount ? "계좌별 현황" : "종목별 현황"}
