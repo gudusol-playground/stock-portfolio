@@ -227,6 +227,9 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
                         <TableCell className={`hidden text-right font-medium md:table-cell ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
                           {h.returnRate >= 0 ? "+" : ""}
                           {h.returnRate.toFixed(2)}%
+                          <p className="text-xs font-normal">
+                            {h.valueKRW - h.costKRW >= 0 ? "+" : ""}{formatKRW(h.valueKRW - h.costKRW)}
+                          </p>
                         </TableCell>
                         <TableCell className="hidden text-right font-medium md:table-cell">
                           {h.weight.toFixed(1)}%
@@ -275,6 +278,9 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
                   <TableCell className={`hidden text-right font-medium md:table-cell ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
                     {h.returnRate >= 0 ? "+" : ""}
                     {h.returnRate.toFixed(2)}%
+                    <p className="text-xs font-normal">
+                      {h.totalValueKRW - h.totalCostKRW >= 0 ? "+" : ""}{formatKRW(h.totalValueKRW - h.totalCostKRW)}
+                    </p>
                   </TableCell>
                   <TableCell className="hidden text-right font-medium md:table-cell">{h.weight.toFixed(1)}%</TableCell>
                   <TableCell className="hidden md:table-cell">
