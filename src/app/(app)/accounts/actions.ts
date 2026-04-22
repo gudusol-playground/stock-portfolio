@@ -101,3 +101,53 @@ export async function deleteHolding(id: string) {
   revalidatePath("/accounts");
   revalidatePath("/");
 }
+
+// ── 코인 보유 ──────────────────────────────────────
+
+export async function addCoinHolding(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { error } = await supabase.from("coin_holdings").insert({
+    user_id: user.id,
+    exchange: formData.get("exchange") as string,
+    ticker: (formData.get("ticker") as string).toUpperCase(),
+    name: formData.get("name") as string,
+    quantity: Number(formData.get("quantity")),
+    avg_price: Number(formData.get("avg_price")),
+  });
+
+  if (error) return { error: error.message };
+  revalidatePath("/accounts");
+  revalidatePath("/");
+}
+
+export async function updateCoinHolding(formData: FormData) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("coin_holdings")
+    .update({
+      exchange: formData.get("exchange") as string,
+      quantity: Number(formData.get("quantity")),
+      avg_price: Number(formData.get("avg_price")),
+    })
+    .eq("id", formData.get("id") as string);
+
+  if (error) return { error: error.message };
+  revalidatePath("/accounts");
+  revalidatePath("/");
+}
+
+export async function deleteCoinHolding(id: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("coin_holdings").delete().eq("id", id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/accounts");
+  revalidatePath("/");
+}

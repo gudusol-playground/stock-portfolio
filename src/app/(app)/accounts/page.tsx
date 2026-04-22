@@ -1,4 +1,4 @@
-import { getAccounts, getHoldings } from "@/lib/supabase/queries";
+import { getAccounts, getCoinHoldings, getHoldings } from "@/lib/supabase/queries";
 import { formatKRW, formatNumber } from "@/lib/portfolio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,16 @@ import {
 import { Pencil, Plus } from "lucide-react";
 import { AccountDialog } from "./components/account-dialog";
 import { HoldingDialog } from "./components/holding-dialog";
+import { CoinHoldingDialog } from "./components/coin-holding-dialog";
 import { DeleteButton } from "./components/delete-button";
-import { deleteAccount, deleteHolding } from "./actions";
+import { deleteAccount, deleteCoinHolding, deleteHolding } from "./actions";
 
 export default async function AccountsPage() {
-  const [accounts, holdings] = await Promise.all([getAccounts(), getHoldings()]);
+  const [accounts, holdings, coinHoldings] = await Promise.all([
+    getAccounts(),
+    getHoldings(),
+    getCoinHoldings(),
+  ]);
 
   const brokerGroups = Array.from(
     accounts.reduce((map, account) => {
@@ -171,6 +176,90 @@ export default async function AccountsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 코인 섹션 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="border-l-2 border-primary pl-3 text-sm font-semibold">코인</h2>
+          <CoinHoldingDialog
+            trigger={
+              <Button size="sm" variant="outline">
+                <Plus className="mr-1 h-4 w-4" />
+                코인 추가
+              </Button>
+            }
+          />
+        </div>
+
+        {coinHoldings.length === 0 ? (
+          <p className="text-sm text-muted-foreground">보유 코인을 추가해주세요.</p>
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>코인</TableHead>
+                    <TableHead className="hidden text-right md:table-cell">거래소</TableHead>
+                    <TableHead className="hidden text-right md:table-cell">수량</TableHead>
+                    <TableHead className="hidden text-right md:table-cell">평균단가</TableHead>
+                    <TableHead className="text-right">매입금액</TableHead>
+                    <TableHead className="w-20" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {coinHoldings.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{c.name}</p>
+                          <p className="text-xs text-muted-foreground">{c.ticker}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden text-right md:table-cell">
+                        {c.exchange}
+                      </TableCell>
+                      <TableCell className="hidden text-right md:table-cell">
+                        {formatNumber(c.quantity, 8)}
+                      </TableCell>
+                      <TableCell className="hidden text-right md:table-cell">
+                        {formatKRW(c.avg_price)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatKRW(c.quantity * c.avg_price)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <CoinHoldingDialog
+                            coin={c}
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground"
+                                aria-label="코인 수정"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                          <DeleteButton
+                            description={`"${c.name}" 코인이 삭제됩니다.`}
+                            onDelete={async () => {
+                              "use server";
+                              return deleteCoinHolding(c.id);
+                            }}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

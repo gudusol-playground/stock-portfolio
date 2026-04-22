@@ -16,7 +16,7 @@ import {
 import { formatKRW, formatNumber } from "@/lib/portfolio";
 import { RefreshButton } from "./refresh-button";
 import { RebalancingDialog } from "./rebalancing-dialog";
-import type { Account, AggregatedHolding, Holding } from "@/types";
+import type { Account, AggregatedHolding, CoinHolding, Holding } from "@/types";
 
 type SortKey = "cost" | "value" | "returnRate" | "weight";
 type SortDir = "asc" | "desc";
@@ -34,15 +34,19 @@ interface Props {
   accounts: Account[];
   holdings: Holding[];
   prices: Record<string, number>;
+  coinHoldings: CoinHolding[];
+  coinPrices: Record<string, number>;
   usdKrw: number;
 }
 
-const MARKET_BADGE = (market: "KR" | "US") =>
+const MARKET_BADGE = (market: "KR" | "US" | "COIN") =>
   market === "KR"
     ? "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
-    : "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300";
+    : market === "US"
+    ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+    : "border-purple-300 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300";
 
-export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw }: Props) {
+export function PortfolioTable({ aggregated, accounts, holdings, prices, coinHoldings, coinPrices, usdKrw }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("value");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [groupByAccount, setGroupByAccount] = useState(false);
@@ -101,6 +105,25 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
       return { account, rows: sortedRows(rows, getGroupValue) };
     });
 
+  // 거래소별 코인 그룹
+  const coinExchangeGroups = Array.from(
+    coinHoldings.reduce((map, c) => {
+      const group = map.get(c.exchange) ?? [];
+      map.set(c.exchange, [...group, c]);
+      return map;
+    }, new Map<string, CoinHolding[]>())
+  ).map(([exchange, coins]) => ({
+    exchange,
+    rows: coins.map((c) => {
+      const currentPrice = coinPrices[c.ticker] ?? c.avg_price;
+      const costKRW = c.quantity * c.avg_price;
+      const valueKRW = c.quantity * currentPrice;
+      const returnRate = c.avg_price > 0 ? ((currentPrice - c.avg_price) / c.avg_price) * 100 : 0;
+      const weight = totalValueKRW > 0 ? (valueKRW / totalValueKRW) * 100 : 0;
+      return { ...c, currentPrice, costKRW, valueKRW, returnRate, weight };
+    }),
+  }));
+
   const sortedAggregated = sortedRows(aggregated, getAggValue);
 
   function SortableHead({ label, sortK, className }: { label: string; sortK: SortKey; className?: string }) {
@@ -130,18 +153,30 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
     h,
     mobileStats,
   }: {
-    h: { market: "KR" | "US"; name: string; ticker: string };
+    h: { market: "KR" | "US" | "COIN"; name: string; ticker: string };
     mobileStats?: { value: string; returnRate: number; weight: number };
   }) {
+    const badgeLabel = h.market === "COIN" ? "코인" : h.market;
+    const showTickerOnly = h.market === "US";
+
     return (
       <TableCell>
         <div className="flex items-start gap-2">
-          <Badge variant="outline" className={`mt-0.5 shrink-0 text-xs ${MARKET_BADGE(h.market)}`}>
-            {h.market}
+          <Badge variant="outline" className={`mt-0.5 w-9 shrink-0 justify-center text-xs ${MARKET_BADGE(h.market)}`}>
+            {badgeLabel}
           </Badge>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{h.name}</p>
-            <p className="text-xs text-muted-foreground">{h.ticker}</p>
+            {showTickerOnly ? (
+              <div className="group relative inline-block">
+                <p className="text-sm font-medium">{h.ticker}</p>
+                <div className="pointer-events-none absolute left-0 top-full z-50 mt-1 hidden whitespace-nowrap rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md group-hover:block">
+                  {h.name}
+                </div>
+              </div>
+            ) : (
+              <p className="truncate text-sm font-medium">{h.name}</p>
+            )}
+            {!showTickerOnly && <p className="text-xs text-muted-foreground">{h.ticker}</p>}
             {mobileStats && (
               <div className="mt-0.5 flex items-center gap-1 text-xs md:hidden">
                 <span className="font-medium">{mobileStats.value}</span>
@@ -198,44 +233,57 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
             {accountGroups.map(({ account, rows }) => (
               <TableBody key={account.id}>
                 <TableRow className="hover:bg-transparent">
-                  <TableCell
-                    colSpan={8}
-                    className="bg-muted/40 py-2 text-xs font-semibold text-muted-foreground"
-                  >
+                  <TableCell colSpan={8} className="bg-muted/40 py-2 text-xs font-semibold text-muted-foreground">
                     {account.broker} · {account.name}
                   </TableCell>
                 </TableRow>
                 {rows.map((h) => (
-                      <TableRow key={h.id}>
-                        <StockCell
-                          h={h}
-                          mobileStats={{ value: formatKRW(h.valueKRW), returnRate: h.returnRate, weight: h.weight }}
-                        />
-                        <TableCell className="hidden text-right md:table-cell">{formatNumber(h.quantity)}</TableCell>
-                        <TableCell className="hidden text-right md:table-cell">
-                          {h.currency === "USD"
-                            ? `$${formatNumber(h.avg_price, 2)}`
-                            : formatKRW(h.avg_price)}
-                        </TableCell>
-                        <TableCell className="hidden text-right md:table-cell">
-                          {h.currency === "USD"
-                            ? `$${formatNumber(h.currentPrice, 2)}`
-                            : formatKRW(h.currentPrice)}
-                        </TableCell>
-                        <TableCell className="hidden text-right md:table-cell">{formatKRW(h.costKRW)}</TableCell>
-                        <TableCell className="hidden text-right md:table-cell">{formatKRW(h.valueKRW)}</TableCell>
-                        <TableCell className={`hidden text-right font-medium md:table-cell ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
-                          {h.returnRate >= 0 ? "+" : ""}
-                          {h.returnRate.toFixed(2)}%
-                          <p className="text-xs font-normal">
-                            {h.valueKRW - h.costKRW >= 0 ? "+" : ""}{formatKRW(h.valueKRW - h.costKRW)}
-                          </p>
-                        </TableCell>
-                        <TableCell className="hidden text-right font-medium md:table-cell">
-                          {h.weight.toFixed(1)}%
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                  <TableRow key={h.id}>
+                    <StockCell h={h} mobileStats={{ value: formatKRW(h.valueKRW), returnRate: h.returnRate, weight: h.weight }} />
+                    <TableCell className="hidden text-right md:table-cell">{formatNumber(h.quantity, 0)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">
+                      {h.currency === "USD" ? `$${formatNumber(h.avg_price, 2)}` : formatKRW(h.avg_price)}
+                    </TableCell>
+                    <TableCell className="hidden text-right md:table-cell">
+                      {h.currency === "USD" ? `$${formatNumber(h.currentPrice, 2)}` : formatKRW(h.currentPrice)}
+                    </TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatKRW(h.costKRW)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatKRW(h.valueKRW)}</TableCell>
+                    <TableCell className={`hidden text-right font-medium md:table-cell ${h.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                      {h.returnRate >= 0 ? "+" : ""}{h.returnRate.toFixed(2)}%
+                      <p className="text-xs font-normal">
+                        {h.valueKRW - h.costKRW >= 0 ? "+" : ""}{formatKRW(h.valueKRW - h.costKRW)}
+                      </p>
+                    </TableCell>
+                    <TableCell className="hidden text-right font-medium md:table-cell">{h.weight.toFixed(1)}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            ))}
+            {coinExchangeGroups.map(({ exchange, rows }) => (
+              <TableBody key={exchange}>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={8} className="bg-muted/40 py-2 text-xs font-semibold text-muted-foreground">
+                    코인 · {exchange}
+                  </TableCell>
+                </TableRow>
+                {rows.map((c) => (
+                  <TableRow key={c.id}>
+                    <StockCell h={{ market: "COIN", name: c.name, ticker: c.ticker }} mobileStats={{ value: formatKRW(c.valueKRW), returnRate: c.returnRate, weight: c.weight }} />
+                    <TableCell className="hidden text-right md:table-cell">{formatNumber(c.quantity, 8)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatKRW(c.avg_price)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatKRW(c.currentPrice)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatKRW(c.costKRW)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell">{formatKRW(c.valueKRW)}</TableCell>
+                    <TableCell className={`hidden text-right font-medium md:table-cell ${c.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                      {c.returnRate >= 0 ? "+" : ""}{c.returnRate.toFixed(2)}%
+                      <p className="text-xs font-normal">
+                        {c.valueKRW - c.costKRW >= 0 ? "+" : ""}{formatKRW(c.valueKRW - c.costKRW)}
+                      </p>
+                    </TableCell>
+                    <TableCell className="hidden text-right font-medium md:table-cell">{c.weight.toFixed(1)}%</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             ))}
           </Table>
@@ -262,7 +310,7 @@ export function PortfolioTable({ aggregated, accounts, holdings, prices, usdKrw 
                     h={h}
                     mobileStats={{ value: formatKRW(h.totalValueKRW), returnRate: h.returnRate, weight: h.weight }}
                   />
-                  <TableCell className="hidden text-right md:table-cell">{formatNumber(h.totalQuantity)}</TableCell>
+                  <TableCell className="hidden text-right md:table-cell">{formatNumber(h.totalQuantity, h.market === "COIN" ? 8 : 0)}</TableCell>
                   <TableCell className="hidden text-right md:table-cell">
                     {h.currency === "USD"
                       ? `$${formatNumber(h.avgPrice, 2)}`

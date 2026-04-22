@@ -1,4 +1,4 @@
-export type Market = "KR" | "US";
+export type Market = "KR" | "US" | "COIN";
 export type Currency = "KRW" | "USD";
 
 /** DB: accounts 테이블 */
@@ -21,6 +21,19 @@ export interface Holding {
   quantity: number;
   avg_price: number;
   currency: Currency;
+  created_at: string;
+  updated_at: string;
+}
+
+/** DB: coin_holdings 테이블 */
+export interface CoinHolding {
+  id: string;
+  user_id: string;
+  exchange: string;
+  ticker: string;
+  name: string;
+  quantity: number;
+  avg_price: number;
   created_at: string;
   updated_at: string;
 }
