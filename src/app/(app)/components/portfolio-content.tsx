@@ -2,7 +2,7 @@ import { getAccounts, getCoinHoldings, getHoldings } from "@/lib/supabase/querie
 import { aggregateCoinHoldings, aggregateHoldings, formatKRW } from "@/lib/portfolio";
 import { getStockPrices } from "@/lib/kis-api/client";
 import { getCoinPrices } from "@/lib/upbit-api/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PortfolioTable } from "./portfolio-table";
 
 interface Props {
@@ -18,7 +18,7 @@ export async function PortfolioContent({ usdKrw }: Props) {
 
   const uniqueTickers = Array.from(
     new Map(holdings.map((h) => [h.ticker, { ticker: h.ticker, market: h.market }])).values()
-  );
+  ).filter((t): t is { ticker: string; market: "KR" | "US" } => t.market === "KR" || t.market === "US");
   const uniqueCoinTickers = Array.from(new Set(coinHoldings.map((c) => c.ticker)));
 
   const [prices, coinPrices] = await Promise.all([
